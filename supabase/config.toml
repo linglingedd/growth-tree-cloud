@@ -1,2 +1,6 @@
+[auth]
+site_url = "https://linglingedd.github.io/growth-tree-cloud/"
+additional_redirect_urls = ["https://linglingedd.github.io/growth-tree-cloud/"]
+
 [functions.growth-tree]
 verify_jwt = false
