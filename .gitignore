@@ -8,5 +8,7 @@ data/
 __pycache__/
 *.pyc
 .supabase/
+supabase/.temp/
+.tools/
 .DS_Store
 Thumbs.db

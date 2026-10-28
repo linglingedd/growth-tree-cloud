@@ -24,7 +24,10 @@ function response(body: unknown, status = 200) {
   } });
 }
 function dayNow() {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+  const parts = new Intl.DateTimeFormat('en', { timeZone: 'Asia/Shanghai', year: 'numeric', month: '2-digit', day: '2-digit' })
+    .formatToParts(new Date());
+  const part = (type: string) => parts.find((item) => item.type === type)?.value || '';
+  return `${part('year')}-${part('month')}-${part('day')}`;
 }
 function pretty(day: string) {
   const [, month, date] = day.split('-');
@@ -36,6 +39,15 @@ function time(value: string) {
 function check<T>(result: { data: T; error: { message: string } | null }): T {
   if (result.error) throw new Error(result.error.message);
   return result.data;
+}
+async function allRows(query: (from: number, to: number) => PromiseLike<{ data: Record<string, any>[] | null; error: { message: string } | null }>) {
+  const rows: Record<string, any>[] = [];
+  const pageSize = 500;
+  while (true) {
+    const page = check(await query(rows.length, rows.length + pageSize - 1)) || [];
+    rows.push(...page);
+    if (page.length < pageSize) return rows;
+  }
 }
 function userClient(token: string) {
   return createClient(SUPABASE_URL, ANON_KEY, { global: { headers: { Authorization: `Bearer ${token}` } }, auth: { persistSession: false } });
@@ -54,9 +66,12 @@ function streak(days: string[], today: string) {
 
 async function tree(client: ReturnType<typeof createClient>, userId: string, email: string) {
   const day = dayNow();
-  const entries = check(await client.from('growth_entries').select('id,day,diary,branches,warmth,one_line').order('day').order('id'));
-  const notes = check(await client.from('growth_notes').select('id,day,text,created_at,analyzed').order('created_at'));
-  const today = notes.filter((n) => n.day === day);
+  const entries = await allRows((from, to) => client.from('growth_entries').select('id,day,diary,branches,warmth,one_line')
+    .eq('user_id', userId).order('day').order('id').range(from, to));
+  const notes = await allRows((from, to) => client.from('growth_notes').select('day,analyzed')
+    .eq('user_id', userId).order('id').range(from, to));
+  const today = await allRows((from, to) => client.from('growth_notes').select('id,text,created_at,analyzed')
+    .eq('user_id', userId).eq('day', day).order('id').range(from, to));
   const days = [...new Set(notes.map((n) => n.day))];
   return { ok: true, username: email, analyzeTime: '21:30',
     entries: entries.map((e) => ({ id: `e${e.id}`, day: e.day, date: pretty(e.day), text: e.diary,
@@ -68,8 +83,8 @@ async function tree(client: ReturnType<typeof createClient>, userId: string, ema
 }
 
 async function analyzeDay(userId: string, day: string) {
-  const notes = check(await admin.from('growth_notes').select('id,text,created_at,analyzed').eq('user_id', userId)
-    .eq('day', day).order('created_at').limit(100));
+  const notes = await allRows((from, to) => admin.from('growth_notes').select('id,text,created_at,analyzed')
+    .eq('user_id', userId).eq('day', day).order('id').range(from, to));
   const pending = notes.filter((n) => !n.analyzed);
   if (!pending.length) return null;
   const diary = notes.map((n) => `[${time(n.created_at)}] ${n.text}`).join('\n');
@@ -85,7 +100,6 @@ async function analyzeDay(userId: string, day: string) {
 }
 
 async function analyzePending(userId: string) {
-  const day = dayNow();
   const pending = check(await admin.from('growth_notes').select('day').eq('user_id', userId)
     .eq('analyzed', false).order('day').limit(1));
   if (!pending.length) return { ok: false, msg: '没有待分析的记录' };

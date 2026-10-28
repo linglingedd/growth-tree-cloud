@@ -1,0 +1,11 @@
+{
+  "name": "growth-tree-cloud",
+  "private": true,
+  "scripts": {
+    "test": "node --test --test-isolation=none tests/*.test.cjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.3.14",
+    "supabase": "^2.122.0"
+  }
+}
