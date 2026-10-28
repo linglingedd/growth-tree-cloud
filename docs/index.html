@@ -203,7 +203,9 @@ function acceptEmailConfirmation(){
 }
 function refreshSession(){
   if(!REFRESH_TOKEN) return Promise.reject(new Error('请重新登录'));
-  return authRequest('token?grant_type=refresh_token',{refresh_token:REFRESH_TOKEN}).then(function(s){ saveSession(s); return s; });
+  return authRequest('token?grant_type=refresh_token',{refresh_token:REFRESH_TOKEN})
+    .then(function(s){ saveSession(s); return s; })
+    .catch(function(e){ saveSession(null); document.getElementById('authMask').classList.remove('off'); throw e; });
 }
 function logout(){
   var old=TOKEN; saveSession(null);
