@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+node_modules/
+data/
+*.db
+*.log
+__pycache__/
+*.pyc
+.supabase/
+.DS_Store
+Thumbs.db

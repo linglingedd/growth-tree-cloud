@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>我的成长树 · 用AI持续认识自己</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#FBF7F0;--card:#FFFFFF;--ink:#3A332C;--ink2:#7A6F63;--line:#EDE4D8;--green:#4A7C59}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","WenQuanYi Micro Hei",sans-serif;
+  background:var(--bg);color:var(--ink);line-height:1.7;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1240px;margin:0 auto;padding:28px 20px 60px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:6px}
+h1{font-size:26px;font-weight:700;letter-spacing:.5px}
+h1 small{font-size:13px;font-weight:400;color:var(--ink2);margin-left:10px}
+.stage{display:inline-flex;align-items:center;gap:7px;background:#fff;border:1px solid var(--line);padding:6px 14px;
+  border-radius:99px;font-size:13px;color:var(--ink2);box-shadow:0 1px 3px rgba(0,0,0,.03)}
+.stage b{color:var(--green);font-weight:600}
+.who{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink2)}
+.who .nm{color:var(--green);font-weight:600}
+.who a{color:var(--ink2);cursor:pointer;text-decoration:underline}
+.sub{font-size:13px;color:var(--ink2);margin:10px 0 20px}
+.grid{display:grid;grid-template-columns:1.15fr .85fr;gap:20px;align-items:start}
+@media(max-width:900px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 2px 12px rgba(80,60,40,.05)}
+.treebox{padding:8px 8px 4px}
+#tree{width:100%;height:auto;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:6px 8px;padding:4px 14px 16px}
+.lg{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink2);cursor:pointer;padding:4px 10px;
+  border-radius:99px;border:1px solid var(--line);background:#fff;transition:.15s;user-select:none}
+.lg:hover{background:#F6F1E9}
+.lg.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.lg i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.tabs{display:flex;gap:4px;padding:12px 12px 0}
+.tab{flex:1;text-align:center;font-size:14px;padding:9px 0;border-radius:10px 10px 0 0;cursor:pointer;color:var(--ink2);
+  border-bottom:2px solid transparent;transition:.15s}
+.tab:hover{color:var(--ink)}
+.tab.on{color:var(--green);font-weight:600;border-bottom-color:var(--green);background:#F7FBF8}
+.pane{display:none;padding:18px}
+.pane.on{display:block}
+textarea{width:100%;min-height:130px;border:1px solid var(--line);border-radius:12px;padding:13px 14px;font-size:14px;
+  font-family:inherit;line-height:1.8;resize:vertical;background:#FDFBF7;color:var(--ink)}
+textarea:focus{outline:none;border-color:var(--green);background:#fff}
+label.fl{display:block;font-size:12.5px;color:var(--ink2);margin:16px 0 7px;font-weight:600;letter-spacing:.3px}
+.btn{display:inline-block;padding:9px 16px;border-radius:10px;border:1px solid var(--line);background:#fff;font-size:13.5px;
+  cursor:pointer;color:var(--ink);transition:.15s;font-family:inherit}
+.btn:hover{background:#F4EFE6}
+.btn.p{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
+.btn.p:hover{background:#3F6B4C}
+.btn.w{width:100%;text-align:center;margin-top:14px}
+.btn:disabled{opacity:.55;cursor:default}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.hint{font-size:12px;color:var(--ink2);margin-top:10px;line-height:1.7}
+.prompts{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.prompts .btn{padding:5px 11px;font-size:12px;border-radius:99px}
+.ins{position:relative;padding:11px 13px 11px 16px;border-radius:11px;background:#FDFBF7;margin-bottom:10px;border:1px solid var(--line)}
+.ins:before{content:"";position:absolute;left:0;top:11px;bottom:11px;width:3px;border-radius:3px;background:var(--c,#ccc)}
+.ins .kw{display:inline-block;font-size:11.5px;font-weight:700;color:var(--c,#888);background:#fff;border:1px solid var(--line);
+  border-radius:99px;padding:2px 9px;margin-bottom:6px}
+.ins .tx{font-size:13.5px;line-height:1.75}
+.ins .dt{font-size:11px;color:#A99E91;margin-top:6px}
+.empty{text-align:center;color:var(--ink2);font-size:13px;padding:34px 10px;line-height:1.9}
+.bhead{display:flex;align-items:center;gap:9px;margin-bottom:14px}
+.bdot{width:12px;height:12px;border-radius:50%}
+.bname{font-size:16px;font-weight:700}
+.bcount{font-size:12px;color:var(--ink2);margin-left:auto}
+.bhint{font-size:12.5px;color:var(--ink2);background:#F7F3EC;border-radius:9px;padding:8px 11px;margin-bottom:14px}
+.letter{background:#FFFDF8;border:1px solid var(--line);border-radius:14px;padding:22px 22px 18px;
+  font-size:14px;line-height:2.05;white-space:pre-wrap}
+.letter h3{font-size:15px;margin-bottom:14px;color:var(--green)}
+.warm{border-left:3px solid #E8A33D;padding:8px 0 8px 13px;margin-bottom:13px;font-size:13.5px;color:#5A5045}
+.warm .dt{font-size:11px;color:#A99E91;display:block;margin-top:4px}
+.notes{margin-top:12px;border-top:1px dashed var(--line);padding-top:12px}
+.note{display:flex;gap:9px;font-size:13px;padding:6px 0;color:var(--ink2);border-bottom:1px solid #F6F1E9}
+.note .tm{color:#B4A99C;font-size:11.5px;flex:0 0 38px;padding-top:2px}
+.note .tg{flex:1;word-break:break-word}
+.note .st{font-size:11px;color:#B4A99C;flex:0 0 auto}
+#toast{position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;
+  padding:11px 22px;border-radius:99px;font-size:13.5px;opacity:0;pointer-events:none;transition:.28s;z-index:99}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+#tip{position:fixed;pointer-events:none;background:var(--ink);color:#fff;font-size:12px;line-height:1.6;padding:8px 11px;
+  border-radius:9px;max-width:250px;opacity:0;transition:.12s;z-index:98;box-shadow:0 4px 14px rgba(0,0,0,.16)}
+#tip.on{opacity:1}
+.foot{margin-top:26px;font-size:12px;color:#A99E91;text-align:center;line-height:1.9}
+.foot a{color:#7A6F63}
+.pop{animation:pop .75s cubic-bezier(.2,.8,.3,1);transform-box:fill-box;transform-origin:center}
+@keyframes pop{0%{transform:scale(0);opacity:0}60%{transform:scale(1.35)}100%{transform:scale(1);opacity:1}}
+.mask{position:fixed;inset:0;background:#FBF7F0;z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
+.mask.off{display:none}
+.auth{width:100%;max-width:380px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:28px 26px;
+  box-shadow:0 8px 30px rgba(80,60,40,.08)}
+.auth h2{font-size:21px;margin-bottom:6px}
+.auth .asub{font-size:12.5px;color:var(--ink2);margin-bottom:18px;line-height:1.7}
+.t2row{display:flex;gap:6px;margin-bottom:16px}
+.t2{flex:1;text-align:center;padding:8px 0;font-size:13.5px;border-radius:9px;cursor:pointer;color:var(--ink2);
+  border:1px solid var(--line);background:#fff}
+.t2.on{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
+.auth input{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:10px;font-size:14px;
+  font-family:inherit;margin-bottom:10px;background:#FDFBF7;color:var(--ink)}
+.auth input:focus{outline:none;border-color:var(--green);background:#fff}
+.err{font-size:12.5px;color:#B4594B;min-height:18px;margin-top:8px;text-align:center}
+.small{font-size:11.5px;color:#A99E91;text-align:center;margin-top:14px;line-height:1.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>我的成长树<small id="modeTip">把每天的觉察，种成一棵看得见的树</small></h1>
+  <div class="stage">当前：<b id="stageName">一颗种子</b></div>
+</header>
+<p class="sub" id="subline">
+  <span class="who" id="whoBox" style="display:none"></span>
+  每写一篇觉察日记，AI 从六个维度照见你一次，树上就长出一片叶子。
+</p>
+
+<div class="grid">
+  <div class="card">
+    <div class="treebox"><svg id="tree" viewBox="0 0 800 640" aria-label="成长树"></svg></div>
+    <div class="legend" id="legend"></div>
+  </div>
+
+  <div class="card">
+    <div class="tabs">
+      <div class="tab on" data-p="p1">随手记</div>
+      <div class="tab" data-p="p2">六根树枝</div>
+      <div class="tab" data-p="p3">厚信</div>
+    </div>
+    <div class="pane on" id="p1"></div>
+    <div class="pane" id="p2"><div id="branchView"></div></div>
+    <div class="pane" id="p3"><div id="letterView"></div></div>
+  </div>
+</div>
+
+<div class="foot" id="foot"></div>
+</div>
+
+<div class="mask" id="authMask">
+  <div class="auth">
+    <h2>我的成长树</h2>
+    <p class="asub">使用邮箱和密码登录。<b>只有你自己能看到你的树</b>。</p>
+    <div class="t2row">
+      <div class="t2 on" data-m="login">登录</div>
+      <div class="t2" data-m="reg">第一次来 · 注册</div>
+    </div>
+    <input id="uName" type="email" placeholder="邮箱" autocomplete="email" autocapitalize="none">
+    <input id="uPass" type="password" placeholder="密码（至少 6 位）" autocomplete="current-password">
+    <button class="btn p w" id="goBtn">登录</button>
+    <p class="err" id="authErr"></p>
+    <p class="small">账号由 Supabase 安全管理。注册后可能需要点击邮件中的确认链接。</p>
+  </div>
+</div>
+
+<div id="toast"></div>
+<div id="tip"></div>
+
+<script src="config.js"></script>
+<script>
+var CONFIG = window.GROWTH_TREE_CONFIG || {};
+var SUPABASE_URL = String(CONFIG.supabaseUrl || '').replace(/\/$/, '');
+var PUBLISHABLE_KEY = String(CONFIG.publishableKey || '');
+var API_BASE = SUPABASE_URL + '/functions/v1/growth-tree';
+
+/* ============ 六个维度 ============ */
+var BRANCHES = [
+  {key:'value',    name:'价值与需要', hint:'我真正看重什么、渴望被满足什么', color:'#E8A33D', x0:400,y0:492, x1:132,y1:396, cx:266,cy:418},
+  {key:'emotion',  name:'情绪与身体', hint:'情绪起伏与身体信号在替我说什么', color:'#E2725B', x0:400,y0:438, x1:668,y1:342, cx:534,cy:364},
+  {key:'relation', name:'关系',       hint:'我与他人的连接、我在关系里的位置', color:'#6C9BCF', x0:400,y0:380, x1:150,y1:284, cx:275,cy:306},
+  {key:'thinking', name:'思维习惯',   hint:'我如何解释事情、有哪些自动化的念头', color:'#8E7CC3', x0:400,y0:322, x1:650,y1:226, cx:525,cy:248},
+  {key:'action',   name:'行动与选择', hint:'我做了什么、回避了什么、背后的动力', color:'#4A9D7E', x0:400,y0:262, x1:200,y1:170, cx:300,cy:192},
+  {key:'meaning',  name:'成长与意义', hint:'这件事把我带向哪里、我看见自己哪一面', color:'#D46BA3', x0:400,y0:206, x1:600,y1:112, cx:500,cy:134}
+];
+var BMAP={}; BRANCHES.forEach(function(b){BMAP[b.key]=b;});
+
+/* ============ 状态 ============ */
+var TOKEN=null, REFRESH_TOKEN=null, USERNAME='', ANALYZE_TIME='21:30', TODAY_NOTES=[], STATS={};
+var state={entries:[]};
+var curBranch=BRANCHES[0].key, flashIds=[];
+
+function loadSession(){
+  try { var s=JSON.parse(localStorage.getItem('growthTree.session')||'null');
+    if(s){ TOKEN=s.access_token||null; REFRESH_TOKEN=s.refresh_token||null; }
+  } catch(e) {}
+}
+function saveSession(s){
+  TOKEN=s&&s.access_token||null; REFRESH_TOKEN=s&&s.refresh_token||null;
+  try { if(TOKEN) localStorage.setItem('growthTree.session',JSON.stringify({access_token:TOKEN,refresh_token:REFRESH_TOKEN}));
+    else localStorage.removeItem('growthTree.session'); } catch(e) {}
+}
+function authRequest(path, body){
+  return fetch(SUPABASE_URL+'/auth/v1/'+path,{method:'POST',headers:{'Content-Type':'application/json','apikey':PUBLISHABLE_KEY},body:JSON.stringify(body)})
+    .then(function(r){ return r.json().then(function(j){ if(!r.ok) throw new Error(j.msg||j.error_description||j.message||'账号服务暂时不可用'); return j; }); });
+}
+function acceptEmailConfirmation(){
+  var hash=new URLSearchParams(location.hash.slice(1));
+  var access=hash.get('access_token'), refresh=hash.get('refresh_token');
+  if(access && refresh){
+    saveSession({access_token:access,refresh_token:refresh});
+    history.replaceState(null,'',location.pathname+location.search);
+    return true;
+  }
+  return false;
+}
+function refreshSession(){
+  if(!REFRESH_TOKEN) return Promise.reject(new Error('请重新登录'));
+  return authRequest('token?grant_type=refresh_token',{refresh_token:REFRESH_TOKEN}).then(function(s){ saveSession(s); return s; });
+}
+function logout(){
+  var old=TOKEN; saveSession(null);
+  if(old) fetch(SUPABASE_URL+'/auth/v1/logout',{method:'POST',headers:{'apikey':PUBLISHABLE_KEY,'Authorization':'Bearer '+old}}).catch(function(){});
+  location.reload();
+}
+
+/* ============ 服务端 API ============ */
+function api(path, opt, retried){
+  opt=opt||{}; opt.headers=opt.headers||{};
+  if(TOKEN) opt.headers['Authorization']='Bearer '+TOKEN;
+  opt.headers['apikey']=PUBLISHABLE_KEY;
+  if(opt.body && !opt.headers['Content-Type']) opt.headers['Content-Type']='application/json';
+  return fetch(API_BASE+path, opt).then(function(r){
+    if(r.status===401 && !retried) return refreshSession().then(function(){return api(path,opt,true);});
+    return r.json().catch(function(){ return {ok:false, msg:'网络异常（'+r.status+'）'}; });
+  });
+}
+function pullCloud(){
+  return api('/api/tree').then(function(j){
+    if(!j || !j.ok) throw new Error((j&&j.msg)||'bad');
+    USERNAME=j.username||''; ANALYZE_TIME=j.analyzeTime||'21:30';
+    TODAY_NOTES=j.todayNotes||[]; STATS=j.stats||{};
+    state.entries=j.entries||[];
+    return j;
+  });
+}
+
+/* ============ 画树 ============ */
+var NS='http://www.w3.org/2000/svg';
+function el(n,a){var e=document.createElementNS(NS,n);for(var k in a)e.setAttribute(k,a[k]);return e;}
+function stage(n){
+  if(n===0)return{n:'一颗种子',r:0}; if(n<=2)return{n:'破土发芽',r:1}; if(n<=6)return{n:'小小幼苗',r:2};
+  if(n<=15)return{n:'一棵小树',r:3}; if(n<=35)return{n:'枝繁叶茂',r:4}; return{n:'一棵大树',r:5};
+}
+function renderTree(){
+  var svg=document.getElementById('tree'); svg.innerHTML='';
+  var n=state.entries.length, st=stage(n);
+  document.getElementById('stageName').textContent=st.n;
+  svg.appendChild(el('ellipse',{cx:400,cy:300,rx:380,ry:300,fill:'#F7FBF8'}));
+  var cap=Math.min(n,50), crx=70+cap*4.6, cry=60+cap*3.4;
+  svg.appendChild(el('ellipse',{cx:400,cy:200,rx:crx,ry:cry,fill:'#8FBF9F',opacity:.16}));
+  if(n>15) svg.appendChild(el('ellipse',{cx:400,cy:190,rx:crx*.66,ry:cry*.66,fill:'#8FBF9F',opacity:.14}));
+  svg.appendChild(el('ellipse',{cx:400,cy:585,rx:250,ry:26,fill:'#DCE9BF',opacity:.7}));
+  var tw=16+Math.min(n,40)*.55;
+  svg.appendChild(el('path',{d:'M '+(400-tw/2)+' 590 Q 392 440 '+(400-tw*.34)+' 300 L '+(400+tw*.34)+' 300 Q 408 440 '+(400+tw/2)+' 590 Z',fill:'#6B4E3D'}));
+  svg.appendChild(el('path',{d:'M 400 580 Q 396 450 400 320',stroke:'#54402F','stroke-width':2,fill:'none',opacity:.45}));
+
+  BRANCHES.forEach(function(b){
+    var d='M '+b.x0+' '+b.y0+' Q '+b.cx+' '+b.cy+' '+b.x1+' '+b.y1;
+    var path=el('path',{d:d,stroke:'#6B4E3D',fill:'none','stroke-width':3.2,'stroke-linecap':'round'});
+    svg.appendChild(path);
+    var ins=insightsOf(b.key), total=ins.length, show=Math.min(total,14), L=path.getTotalLength();
+    for(var j=0;j<show;j++){
+      var t=0.30+(0.62*(show===1?0.5:j/(show-1)));
+      var p=path.getPointAtLength(L*t), up=(j%2===0)?-13:12;
+      var it=ins[total-show+j], isNew=flashIds.indexOf(it.id)>=0, r=isNew?9:7.2;
+      var lf=el('ellipse',{cx:p.x,cy:p.y+up,rx:r,ry:r*.78,fill:b.color,opacity:isNew?1:.9,stroke:'#fff','stroke-width':1.6,
+        style:'cursor:pointer'});
+      if(isNew) lf.setAttribute('class','pop');
+      attachTip(lf,'<b style="color:'+b.color+'">'+esc(it.keyword||b.name)+'</b><br>'+esc(it.insight)+
+        '<br><span style="opacity:.6;font-size:11px">'+it.date+' · 点击查看这根枝</span>');
+      lf.addEventListener('click',(function(k){return function(){openBranch(k);};})(b.key));
+      svg.appendChild(lf);
+    }
+    if(total>show){var pe=path.getPointAtLength(L*.96);
+      var mo=el('text',{x:pe.x,y:pe.y+16,'text-anchor':'middle','font-size':12,'font-weight':'700',fill:b.color});
+      mo.textContent='+'+(total-show); svg.appendChild(mo);}
+    var end=path.getPointAtLength(L);
+    svg.appendChild(el('circle',{cx:end.x,cy:end.y,r:4.5,fill:b.color}));
+    var lb=el('text',{x:end.x,y:end.y+21,'text-anchor':'middle','font-size':13.5,'font-weight':'600',fill:'#5A5045',style:'cursor:pointer'});
+    lb.textContent=b.name; lb.addEventListener('click',(function(k){return function(){openBranch(k);};})(b.key));
+    svg.appendChild(lb);
+    var ct=el('text',{x:end.x,y:end.y+37,'text-anchor':'middle','font-size':11,fill:'#A99E91'});
+    ct.textContent=total?(total+' 片'):'空'; svg.appendChild(ct);
+  });
+  if(n===0){var t1=el('text',{x:400,y:430,'text-anchor':'middle','font-size':14,fill:'#A99E91'});
+    t1.textContent='写下第一篇觉察，种子就会发芽'; svg.appendChild(t1);}
+  flashIds=[];
+}
+function insightsOf(k){var o=[];state.entries.forEach(function(e){var b=(e.branches||{})[k];
+  if(b&&b.insight)o.push({id:e.id,date:e.date,insight:b.insight,keyword:b.keyword});});return o;}
+
+/* ============ tooltip ============ */
+var tip=document.getElementById('tip');
+function attachTip(node,html){
+  node.addEventListener('mouseenter',function(e){tip.innerHTML=html;tip.classList.add('on');moveTip(e);});
+  node.addEventListener('mousemove',moveTip);
+  node.addEventListener('mouseleave',function(){tip.classList.remove('on');});
+}
+function moveTip(e){var x=e.clientX+14,y=e.clientY+14; if(x+260>window.innerWidth)x=e.clientX-260;
+  tip.style.left=x+'px';tip.style.top=y+'px';}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+/* ============ 面板 ============ */
+function renderLegend(){
+  var box=document.getElementById('legend'); box.innerHTML='';
+  BRANCHES.forEach(function(b){
+    var n=insightsOf(b.key).length, d=document.createElement('div');
+    d.className='lg'+(curBranch===b.key?' on':'');
+    d.innerHTML='<i style="background:'+b.color+'"></i>'+b.name+' '+n;
+    d.onclick=function(){openBranch(b.key);}; box.appendChild(d);
+  });
+}
+function renderBranch(){
+  var b=BMAP[curBranch], ins=insightsOf(curBranch).slice().reverse(), v=document.getElementById('branchView');
+  var h='<div class="bhead"><span class="bdot" style="background:'+b.color+'"></span><span class="bname">'+b.name+
+    '</span><span class="bcount">'+ins.length+' 片叶子</span></div><div class="bhint">'+b.hint+'</div>';
+  if(!ins.length){h+='<div class="empty">这根枝还没有叶子。<br>坚持记录，AI 会慢慢填满它。</div>';}
+  else ins.forEach(function(it){
+    h+='<div class="ins" style="--c:'+b.color+'">'+(it.keyword?'<span class="kw">'+esc(it.keyword)+'</span><br>':'')+
+      '<span class="tx">'+esc(it.insight)+'</span><div class="dt">'+it.date+'</div></div>';});
+  v.innerHTML=h;
+}
+function renderLetter(){
+  var warms=[]; state.entries.forEach(function(e){if(e.warmth)warms.push({date:e.date,t:e.warmth});});
+  var v=document.getElementById('letterView');
+  if(!warms.length){v.innerHTML='<div class="empty">还没有被拾起的瞬间。<br>每篇日记里那些微小却动人的片刻，AI 会一封封攒起来。</div>';return;}
+  var h='<div class="letter"><h3>给自己的一封厚信</h3>亲爱的我：<br><br>你写下过 '+state.entries.length+
+    ' 篇觉察。在这些文字里，有一些连你自己都快忘了的瞬间，我把它们捡了回来——<br><br>';
+  warms.slice().reverse().forEach(function(w){h+='<div class="warm">'+esc(w.t)+'<span class="dt">'+w.date+'</span></div>';});
+  var last=state.entries[state.entries.length-1];
+  h+='<br>它们加在一起，就是你走过的样子。<br><br>'+(last&&last.oneLine?'<b>'+esc(last.oneLine)+'</b>':'慢慢长，不着急。')+
+    '</div><button class="btn w" id="copyLetter">复制这封信</button>';
+  v.innerHTML=h;
+  document.getElementById('copyLetter').onclick=function(){
+    copy(document.querySelector('.letter').innerText,'信已复制，可以存进备忘录');};
+}
+function renderAll(){renderTree();renderLegend();renderBranch();renderLetter();}
+
+/* ============ 面板1：随手记 / 分析 ============ */
+var SEEDS=['今天最有感觉的一件事是','那一刻，我身体的感受是','我脑子里冒出来的第一个念头是','我其实想要的是','我做了什么 / 我没做什么'];
+function renderP1(){
+  var p=document.getElementById('p1');
+  p.innerHTML=
+    '<label class="fl">随手记一条（想到什么写什么）</label>'+
+    '<div class="prompts" id="seeds"></div>'+
+    '<textarea id="quick" placeholder="例：下午改方案又被打回来，胸口发紧……"></textarea>'+
+    '<button class="btn p w" id="qBtn">记下</button>'+
+    '<label class="fl">今天已记 '+TODAY_NOTES.length+' 条'+(TODAY_NOTES.length?'（每天 '+ANALYZE_TIME+' 自动做一次六维觉察）':'')+'</label>'+
+    '<div class="notes" id="notes"></div>'+
+    '<button class="btn w" id="anBtn">现在就做一次六维分析</button>'+
+    '<p class="hint">手机和电脑都能记，数据实时同步。别人看不到你的记录。</p>';
+  var sb=document.getElementById('seeds');
+  SEEDS.forEach(function(s){var b=document.createElement('button');b.className='btn';b.textContent=s+'…';
+    b.onclick=function(){var t=document.getElementById('quick');
+      if(t.value&&!/\n$/.test(t.value))t.value+='\n'; t.value+=s+'：'; t.focus();}; sb.appendChild(b);});
+  document.getElementById('qBtn').onclick=function(){
+    var t=document.getElementById('quick').value.trim();
+    if(!t){toast('写点什么吧');return;}
+    var btn=this; btn.disabled=true; btn.textContent='记录中…';
+    api('/api/note',{method:'POST',body:JSON.stringify({text:t})}).then(function(j){
+      if(!j.ok){toast(j.msg||'失败');return;}
+      document.getElementById('quick').value='';
+      toast('记下了（今天第 '+j.todayCount+' 条）');
+      return pullCloud();
+    }).then(renderP1).catch(function(){toast('网络异常');})
+      .then(function(){btn.disabled=false;btn.textContent='记下';});
+  };
+  document.getElementById('anBtn').onclick=function(){
+    var btn=this; btn.disabled=true; btn.textContent='AI 正在读你今天的记录…';
+    api('/api/analyze',{method:'POST',body:'{}'})
+      .then(function(j){
+        if(!j.ok){toast(j.msg||'分析失败');return;}
+        btn.textContent='分析完成'; return pullCloud();
+      }).then(function(){renderAll();renderP1();})
+      .catch(function(){toast('网络异常');})
+      .then(function(){setTimeout(function(){btn.disabled=false;btn.textContent='现在就做一次六维分析';},1500);});
+  };
+  renderNotes();
+}
+function renderNotes(){
+  var box=document.getElementById('notes'); if(!box)return;
+  if(!TODAY_NOTES.length){box.innerHTML='<div class="note"><span class="tg" style="color:#B4A99C">今天还没有记录</span></div>';return;}
+  box.innerHTML=TODAY_NOTES.map(function(n){
+    return '<div class="note"><span class="tm">'+n.time+'</span><span class="tg">'+esc(n.text)+
+      '</span><span class="st">'+(n.analyzed?'已分析':'待分析')+'</span></div>';}).join('');
+}
+function renderFoot(){
+  var f=document.getElementById('foot');
+  var s=STATS||{};
+  f.innerHTML='累计 '+(s.totalNotes||0)+' 条速记 · 已长出 '+(s.entries||0)+' 篇觉察 · 记录 '+(s.days||0)+' 天 · 连续 '+(s.streak||0)+' 天';
+}
+
+/* ============ 通用 ============ */
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('on');
+  clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('on');},2200);}
+function copy(text,msg){
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){toast(msg);},fb);} else fb();
+  function fb(){var ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');toast(msg);}catch(e){toast('复制失败，请手动选中');}
+    document.body.removeChild(ta);}
+}
+function openBranch(k){
+  curBranch=k;
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.toggle('on',t.dataset.p==='p2');});
+  document.querySelectorAll('.pane').forEach(function(p){p.classList.toggle('on',p.id==='p2');});
+  renderLegend();renderBranch();
+}
+document.querySelectorAll('.tab').forEach(function(t){
+  t.onclick=function(){
+    document.querySelectorAll('.tab').forEach(function(x){x.classList.toggle('on',x===t);});
+    document.querySelectorAll('.pane').forEach(function(p){p.classList.toggle('on',p.id===t.dataset.p);});};
+});
+
+/* ============ 登录 ============ */
+var authMode='login';
+document.querySelectorAll('.t2').forEach(function(t){
+  t.onclick=function(){
+    authMode=t.dataset.m;
+    document.querySelectorAll('.t2').forEach(function(x){x.classList.toggle('on',x===t);});
+    document.getElementById('goBtn').textContent = authMode==='login' ? '登录' : '注册并开始';
+    document.getElementById('uPass').setAttribute('autocomplete', authMode==='login'?'current-password':'new-password');
+    document.getElementById('authErr').textContent='';
+  };
+});
+function showErr(m){ document.getElementById('authErr').textContent=m; }
+document.getElementById('goBtn').onclick=function(){
+  var u=document.getElementById('uName').value.trim().toLowerCase();
+  var p=document.getElementById('uPass').value;
+  var btn=this, err=document.getElementById('authErr');
+  err.textContent='';
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(u)){ showErr('请输入有效邮箱'); return; }
+  if(p.length<6){ showErr('密码至少 6 位'); return; }
+  btn.disabled=true; btn.textContent='连接中…';
+  var endpoint=authMode==='login'?'token?grant_type=password':'signup?redirect_to='+encodeURIComponent(location.href.split('#')[0]);
+  authRequest(endpoint,{email:u,password:p}).then(function(j){
+    if(!j.access_token){ showErr('请先打开确认邮件，点击验证链接后登录'); return; }
+    saveSession(j); USERNAME=u;
+    document.getElementById('authMask').classList.add('off');
+    start();
+  }).catch(function(e){ showErr(e.message||String(e)); })
+    .then(function(){ btn.disabled=false; btn.textContent = authMode==='login'?'登录':'注册并开始'; });
+};
+document.getElementById('uPass').addEventListener('keydown',function(e){
+  if(e.key==='Enter') document.getElementById('goBtn').click();
+});
+
+/* ============ 启动 ============ */
+function start(){
+  var who=document.getElementById('whoBox');
+  who.style.display='inline-flex';
+  who.innerHTML='<span class="nm">'+esc(USERNAME)+'</span><a id="outBtn">退出</a>';
+  document.getElementById('outBtn').onclick=function(e){e.preventDefault();logout();};
+  document.getElementById('subline').lastChild.textContent=' 每写一篇觉察日记，AI 从六个维度照见你一次，树上就长出一片叶子。';
+  pullCloud().then(function(){
+    renderAll(); renderP1(); renderFoot();
+    setInterval(function(){
+      pullCloud().then(function(){renderAll();renderNotes();renderFoot();}).catch(function(){});
+    },60000);
+  }).catch(function(e){
+    toast('读取失败：'+((e&&e.message)||e));
+  });
+}
+
+(function boot(){
+  if(!SUPABASE_URL || !PUBLISHABLE_KEY){
+    document.getElementById('authMask').innerHTML=
+      '<div class="auth"><h2>网站尚未完成配置</h2><p class="asub">请稍后再试。</p></div>';
+    return;
+  }
+  loadSession();
+  acceptEmailConfirmation();
+  if(TOKEN){
+    api('/api/me').then(function(j){
+      if(j && j.ok){ USERNAME=j.username||''; document.getElementById('authMask').classList.add('off'); start(); }
+      else { saveSession(null); }
+    }).catch(function(){ saveSession(null); });
+  }
+})();
+</script>
+</body>
+</html>
