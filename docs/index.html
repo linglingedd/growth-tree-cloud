@@ -21,6 +21,8 @@ h1 small{font-size:13px;font-weight:400;color:var(--ink2);margin-left:10px}
 .who a{color:var(--ink2);cursor:pointer;text-decoration:underline}
 .sub{font-size:13px;color:var(--ink2);margin:10px 0 20px}
 .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:20px;align-items:start}
+.grid.history-mode{grid-template-columns:minmax(0,1fr)}
+.grid.history-mode>.card:first-child{display:none}
 @media(max-width:900px){.grid{grid-template-columns:1fr}}
 .card{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:0 2px 12px rgba(80,60,40,.05)}
 .treebox{padding:8px 8px 4px}
@@ -32,12 +34,13 @@ h1 small{font-size:13px;font-weight:400;color:var(--ink2);margin-left:10px}
 .lg.on{background:var(--ink);color:#fff;border-color:var(--ink)}
 .lg i{width:9px;height:9px;border-radius:50%;display:inline-block}
 .tabs{display:flex;gap:4px;padding:12px 12px 0}
-.tab{flex:1;text-align:center;font-size:14px;padding:9px 0;border-radius:10px 10px 0 0;cursor:pointer;color:var(--ink2);
+.tab{flex:1;min-width:0;text-align:center;font-family:inherit;font-size:13.5px;padding:9px 2px;border:0;background:none;border-radius:8px 8px 0 0;cursor:pointer;color:var(--ink2);
   border-bottom:2px solid transparent;transition:.15s}
 .tab:hover{color:var(--ink)}
 .tab.on{color:var(--green);font-weight:600;border-bottom-color:var(--green);background:#F7FBF8}
 .pane{display:none;padding:18px}
 .pane.on{display:block}
+#p4{max-width:860px;margin:0 auto}
 textarea{width:100%;min-height:130px;border:1px solid var(--line);border-radius:12px;padding:13px 14px;font-size:14px;
   font-family:inherit;line-height:1.8;resize:vertical;background:#FDFBF7;color:var(--ink)}
 textarea:focus{outline:none;border-color:var(--green);background:#fff}
@@ -75,6 +78,21 @@ label.fl{display:block;font-size:12.5px;color:var(--ink2);margin:16px 0 7px;font
 .note .tm{color:#B4A99C;font-size:11.5px;flex:0 0 38px;padding-top:2px}
 .note .tg{flex:1;word-break:break-word}
 .note .st{font-size:11px;color:#B4A99C;flex:0 0 auto}
+.history-search{display:grid;grid-template-columns:1fr 1.3fr;gap:9px;margin:14px 0;max-width:700px}
+.history-search label{display:block;font-size:12px;color:var(--ink2);margin-bottom:5px}
+.history-search input{width:100%;min-width:0;height:38px;border:1px solid var(--line);border-radius:7px;padding:7px 9px;font:inherit;font-size:13px;color:var(--ink);background:#fff}
+.history-search input:focus{outline:none;border-color:var(--green)}
+.history-actions{grid-column:1/-1;display:flex;gap:8px}
+.history-actions .btn{min-width:78px}
+.history-heading{font-size:16px;font-weight:700}
+.history-status{min-height:20px;font-size:12px;color:var(--ink2)}
+.history-day{margin:17px 0 8px;font-size:13px;font-weight:700;color:var(--green)}
+.history-item{padding:12px 0;border-top:1px solid var(--line)}
+.history-meta{display:flex;justify-content:space-between;gap:12px;font-size:11.5px;color:var(--ink2);margin-bottom:5px}
+.history-text{font-size:13.5px;line-height:1.8;white-space:pre-wrap;overflow-wrap:anywhere}
+.history-pages{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:18px}
+.history-pages[hidden]{display:none}
+@media(max-width:520px){.history-search{grid-template-columns:1fr}.history-search label{margin-bottom:3px}}
 #toast{position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;
   padding:11px 22px;border-radius:99px;font-size:13.5px;opacity:0;pointer-events:none;transition:.28s;z-index:99}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -121,12 +139,28 @@ label.fl{display:block;font-size:12.5px;color:var(--ink2);margin:16px 0 7px;font
   </div>
 
   <div class="card">
-    <div class="tabs">
-      <div class="tab on" data-p="p1">随手记</div>
-      <div class="tab" data-p="p2">六根树枝</div>
-      <div class="tab" data-p="p3">厚信</div>
+    <div class="tabs" role="tablist" aria-label="成长树页面">
+      <button class="tab on" type="button" role="tab" aria-selected="true" data-p="p1">随手记</button>
+      <button class="tab" type="button" role="tab" aria-selected="false" data-p="p4">原始记录</button>
+      <button class="tab" type="button" role="tab" aria-selected="false" data-p="p2">六根树枝</button>
+      <button class="tab" type="button" role="tab" aria-selected="false" data-p="p3">厚信</button>
     </div>
     <div class="pane on" id="p1"></div>
+    <div class="pane" id="p4">
+      <h2 class="history-heading">原始记录</h2>
+      <form class="history-search" id="historyForm">
+        <div><label for="historyDay">日期</label><input id="historyDay" type="date"></div>
+        <div><label for="historyKeyword">关键词</label><input id="historyKeyword" type="search" maxlength="100" placeholder="搜索记录正文"></div>
+        <div class="history-actions"><button class="btn p" type="submit">搜索</button><button class="btn" type="button" id="historyClear">清空</button></div>
+      </form>
+      <div class="history-status" id="historyStatus" role="status" aria-live="polite"></div>
+      <div id="historyResults"></div>
+      <div class="history-pages" id="historyPages" hidden>
+        <button class="btn" type="button" id="historyPrev">上一页</button>
+        <span class="history-status" id="historyPageLabel"></span>
+        <button class="btn" type="button" id="historyNext">下一页</button>
+      </div>
+    </div>
     <div class="pane" id="p2"><div id="branchView"></div></div>
     <div class="pane" id="p3"><div id="letterView"></div></div>
   </div>
@@ -390,6 +424,58 @@ function renderFoot(){
   f.innerHTML='累计 '+(s.totalNotes||0)+' 条速记 · 已长出 '+(s.entries||0)+' 篇觉察 · 记录 '+(s.days||0)+' 天 · 连续 '+(s.streak||0)+' 天';
 }
 
+/* ============ 原始记录 ============ */
+var historyFilters={day:'',q:''}, historyRequest=0;
+function loadHistory(page, filters){
+  if(filters) historyFilters=filters;
+  var requestId=++historyRequest;
+  var status=document.getElementById('historyStatus');
+  var results=document.getElementById('historyResults');
+  var pages=document.getElementById('historyPages');
+  status.textContent='正在读取记录…';
+  results.innerHTML=''; pages.hidden=true;
+  var params=new URLSearchParams({page:String(page)});
+  if(historyFilters.day) params.set('day',historyFilters.day);
+  if(historyFilters.q) params.set('q',historyFilters.q);
+  api('/api/notes?'+params.toString()).then(function(data){
+    if(requestId!==historyRequest) return;
+    if(!data.ok) throw new Error(data.msg||'读取失败');
+    var total=Number(data.total)||0, pageCount=Math.ceil(total/data.pageSize);
+    if(total && page>pageCount){loadHistory(pageCount);return;}
+    status.textContent=total?'共 '+total+' 条记录':'没有找到记录';
+    if(!total){results.innerHTML='<div class="empty">没有符合条件的原始记录</div>';return;}
+    var lastDay='', html='';
+    (data.notes||[]).forEach(function(n){
+      if(n.day!==lastDay){
+        lastDay=n.day;
+        html+='<h3 class="history-day">'+esc(n.day)+'</h3>';
+      }
+      html+='<div class="history-item"><div class="history-meta"><span>'+esc(n.time)+
+        '</span><span>'+(n.analyzed?'已分析':'待分析')+'</span></div><div class="history-text">'+esc(n.text)+'</div></div>';
+    });
+    results.innerHTML=html;
+    pages.hidden=pageCount<=1;
+    document.getElementById('historyPageLabel').textContent=page+' / '+pageCount;
+    document.getElementById('historyPrev').disabled=page<=1;
+    document.getElementById('historyNext').disabled=page>=pageCount;
+    pages.dataset.page=page;
+  }).catch(function(error){
+    if(requestId!==historyRequest) return;
+    status.textContent='读取失败：'+(error.message||'请稍后重试');
+  });
+}
+document.getElementById('historyForm').onsubmit=function(event){
+  event.preventDefault();
+  loadHistory(1,{day:document.getElementById('historyDay').value,
+    q:document.getElementById('historyKeyword').value.trim()});
+};
+document.getElementById('historyClear').onclick=function(){
+  document.getElementById('historyForm').reset();
+  loadHistory(1,{day:'',q:''});
+};
+document.getElementById('historyPrev').onclick=function(){loadHistory(Number(document.getElementById('historyPages').dataset.page)-1);};
+document.getElementById('historyNext').onclick=function(){loadHistory(Number(document.getElementById('historyPages').dataset.page)+1);};
+
 /* ============ 通用 ============ */
 function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('on');
   clearTimeout(t._t);t._t=setTimeout(function(){t.classList.remove('on');},2200);}
@@ -403,14 +489,19 @@ function copy(text,msg){
 }
 function openBranch(k){
   curBranch=k;
-  document.querySelectorAll('.tab').forEach(function(t){t.classList.toggle('on',t.dataset.p==='p2');});
-  document.querySelectorAll('.pane').forEach(function(p){p.classList.toggle('on',p.id==='p2');});
+  selectTab('p2');
   renderLegend();renderBranch();
 }
+function selectTab(id){
+  document.querySelectorAll('.tab').forEach(function(t){
+    t.classList.toggle('on',t.dataset.p===id);t.setAttribute('aria-selected',t.dataset.p===id);
+  });
+  document.querySelectorAll('.pane').forEach(function(p){p.classList.toggle('on',p.id===id);});
+  document.querySelector('.grid').classList.toggle('history-mode',id==='p4');
+  if(id==='p4') loadHistory(1);
+}
 document.querySelectorAll('.tab').forEach(function(t){
-  t.onclick=function(){
-    document.querySelectorAll('.tab').forEach(function(x){x.classList.toggle('on',x===t);});
-    document.querySelectorAll('.pane').forEach(function(p){p.classList.toggle('on',p.id===t.dataset.p);});};
+  t.onclick=function(){selectTab(t.dataset.p);};
 });
 
 /* ============ 登录 ============ */

@@ -16,4 +16,4 @@ GitHub 仓库和 [Pages 网站](https://linglingedd.github.io/growth-tree-cloud/
 
 前端来自 GitHub 仓库 `linglingedd/growth-tree-cloud` 的 `main` 分支 `/docs` 目录。后端只允许 `https://linglingedd.github.io` 来源，并只允许 `huangmeiling2008@126.com` 使用成长树函数。Supabase 邮箱验证仍开启，验证链接会返回 Pages 网站。`pg_cron` 和 `pg_net` 扩展已启用，`growth-tree-daily-analysis` 任务使用 `30 13 * * *`（UTC）计划，每天北京时间 21:30 调用后端。
 
-当前云端版保留网页记录、树、六维分析和厚信。原本的钉钉长连接机器人还在本地版运行；电脑关机时钉钉消息仍不能收取。网页本身可随时从手机和电脑访问。
+当前云端版保留网页记录、原始记录历史查询、树、六维分析和厚信。“原始记录”页可按日期和正文关键词组合搜索，每页显示 20 条，仅返回当前登录账号的数据。原本的钉钉长连接机器人还在本地版运行；电脑关机时钉钉消息仍不能收取。网页本身可随时从手机和电脑访问。

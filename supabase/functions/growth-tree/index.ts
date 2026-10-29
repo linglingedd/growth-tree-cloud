@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { analyze, formatReceipt } from './ai.js';
+import { keywordPattern } from './search.mjs';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || '';
 const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY') || '';
@@ -132,6 +133,30 @@ Deno.serve(async (request) => {
     if (!user.email || !ALLOWED_EMAILS.has(user.email.toLowerCase())) return response({ ok: false, msg: '此邮箱尚未获准使用成长树' }, 403);
     if (path === '/api/me' && request.method === 'GET') return response({ ok: true, username: user.email });
     if (path === '/api/tree' && request.method === 'GET') return response(await tree(client, user.id, user.email || ''));
+    if (path === '/api/notes' && request.method === 'GET') {
+      const params = new URL(request.url).searchParams;
+      const day = params.get('day') || '';
+      const keyword = (params.get('q') || '').trim();
+      const page = Number(params.get('page') || '1');
+      if (day && (!/^\d{4}-\d{2}-\d{2}$/.test(day) || Number.isNaN(Date.parse(`${day}T00:00:00Z`)) ||
+        new Date(`${day}T00:00:00Z`).toISOString().slice(0, 10) !== day)) {
+        return response({ ok: false, msg: '日期格式不正确' }, 400);
+      }
+      if (keyword.length > 100 || !Number.isSafeInteger(page) || page < 1 || page > 10000) {
+        return response({ ok: false, msg: '搜索条件不正确' }, 400);
+      }
+      const pageSize = 20;
+      let query = client.from('growth_notes').select('id,day,text,created_at,analyzed', { count: 'exact' })
+        .eq('user_id', user.id);
+      if (day) query = query.eq('day', day);
+      if (keyword) query = query.ilike('text', keywordPattern(keyword));
+      const result = await query.order('day', { ascending: false }).order('created_at', { ascending: false })
+        .order('id', { ascending: false }).range((page - 1) * pageSize, page * pageSize - 1);
+      if (result.error) throw new Error(result.error.message);
+      return response({ ok: true, page, pageSize, total: result.count || 0,
+        notes: (result.data || []).map((n) => ({ id: n.id, day: n.day, time: time(n.created_at),
+          text: n.text, analyzed: n.analyzed })) });
+    }
     if (path === '/api/note' && request.method === 'POST') {
       const body = await request.json();
       const text = String(body.text || '').trim();
